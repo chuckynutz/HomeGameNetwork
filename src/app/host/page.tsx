@@ -2,7 +2,25 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Calendar, Clock, MapPin, Users, DollarSign } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, MapPin, Users, DollarSign, Wifi, Coffee, Car, Cigarette, ParkingCircle, Utensils, Wine, Music, Tv } from 'lucide-react';
+
+interface Amenity {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  description: string;
+}
+
+const amenities: Amenity[] = [
+  { id: 'wifi', name: 'WiFi', icon: <Wifi size={20} />, description: 'Free WiFi available' },
+  { id: 'coffee', name: 'Coffee', icon: <Coffee size={20} />, description: 'Coffee & refreshments' },
+  { id: 'parking', name: 'Parking', icon: <Car size={20} />, description: 'Free parking available' },
+  { id: 'smoking', name: 'Smoking', icon: <Cigarette size={20} />, description: 'Smoking area available' },
+  { id: 'food', name: 'Food', icon: <Utensils size={20} />, description: 'Food provided' },
+  { id: 'alcohol', name: 'Alcohol', icon: <Wine size={20} />, description: 'BYOB or provided' },
+  { id: 'music', name: 'Music', icon: <Music size={20} />, description: 'Background music' },
+  { id: 'tv', name: 'TV', icon: <Tv size={20} />, description: 'TV for sports/entertainment' },
+];
 
 export default function HostPage() {
   const router = useRouter();
@@ -16,11 +34,13 @@ export default function HostPage() {
     location: '',
     description: ''
   });
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Here you would typically send the data to your backend
     console.log('Creating game:', formData);
+    console.log('Selected amenities:', selectedAmenities);
     router.push('/games');
   };
 
@@ -31,21 +51,29 @@ export default function HostPage() {
     });
   };
 
+  const toggleAmenity = (amenityId: string) => {
+    setSelectedAmenities(prev => 
+      prev.includes(amenityId) 
+        ? prev.filter(id => id !== amenityId)
+        : [...prev, amenityId]
+    );
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white">
-      {/* Header */}
-      <header className="flex items-center px-4 py-3 border-b border-[#4B9CD3] bg-gradient-to-r from-black to-gray-900">
-        <button 
-          onClick={() => router.back()}
-          className="flex items-center text-[#A0A0A0] hover:text-[#4B9CD3] transition duration-300"
-        >
-          <ArrowLeft size={20} className="mr-1" />
-          Back
-        </button>
-        <h1 className="text-xl font-bold ml-4 text-[#4B9CD3]">Host a Game</h1>
-      </header>
-      
-      <div className="p-4">
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white p-4">
+      <div className="max-w-2xl mx-auto bg-gradient-to-br from-gray-900 to-gray-800 border border-[#4B9CD3] rounded-3xl shadow-2xl shadow-[#4B9CD3]/20 p-6 mt-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-[#4B9CD3]">Host a Game</h1>
+          <button 
+            onClick={() => router.back()}
+            className="flex items-center text-[#A0A0A0] hover:text-[#4B9CD3] transition duration-300"
+          >
+            <ArrowLeft size={20} className="mr-1" />
+            Back
+          </button>
+        </div>
+        
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Game Title */}
           <div>
@@ -56,7 +84,7 @@ export default function HostPage() {
               value={formData.title}
               onChange={handleChange}
               placeholder="e.g., Friday Night Poker"
-              className="w-full bg-gradient-to-r from-gray-900 to-gray-800 border border-[#4B9CD3] rounded-2xl px-4 py-3 text-white placeholder-[#A0A0A0] shadow-lg shadow-[#4B9CD3]/20 focus:shadow-xl focus:shadow-[#4B9CD3]/30 transition duration-300"
+              className="w-full bg-gradient-to-r from-gray-800 to-gray-700 border border-[#4B9CD3] rounded-2xl px-4 py-3 text-white placeholder-[#A0A0A0] shadow-lg shadow-[#4B9CD3]/20 focus:shadow-xl focus:shadow-[#4B9CD3]/30 transition duration-300"
               required
             />
           </div>
@@ -68,7 +96,7 @@ export default function HostPage() {
               name="gameType"
               value={formData.gameType}
               onChange={handleChange}
-              className="w-full bg-gradient-to-r from-gray-900 to-gray-800 border border-[#4B9CD3] rounded-2xl px-4 py-3 text-white shadow-lg shadow-[#4B9CD3]/20 focus:shadow-xl focus:shadow-[#4B9CD3]/30 transition duration-300"
+              className="w-full bg-gradient-to-r from-gray-800 to-gray-700 border border-[#4B9CD3] rounded-2xl px-4 py-3 text-white shadow-lg shadow-[#4B9CD3]/20 focus:shadow-xl focus:shadow-[#4B9CD3]/30 transition duration-300"
             >
               <option value="Texas Hold'em">Texas Hold'em</option>
               <option value="Omaha">Omaha</option>
@@ -83,13 +111,13 @@ export default function HostPage() {
             <div>
               <label className="block text-sm font-medium mb-2 text-[#4B9CD3]">Date</label>
               <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B9CD3]" size={20} />
+                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B9CD3]" size={18} />
                 <input
                   type="date"
                   name="date"
                   value={formData.date}
                   onChange={handleChange}
-                  className="w-full bg-gradient-to-r from-gray-900 to-gray-800 border border-[#4B9CD3] rounded-2xl pl-10 pr-4 py-3 text-white shadow-lg shadow-[#4B9CD3]/20 focus:shadow-xl focus:shadow-[#4B9CD3]/30 transition duration-300"
+                  className="w-full bg-gradient-to-r from-gray-800 to-gray-700 border border-[#4B9CD3] rounded-2xl pl-10 pr-4 py-3 text-white shadow-lg shadow-[#4B9CD3]/20 focus:shadow-xl focus:shadow-[#4B9CD3]/30 transition duration-300"
                   required
                 />
               </div>
@@ -98,13 +126,13 @@ export default function HostPage() {
             <div>
               <label className="block text-sm font-medium mb-2 text-[#4B9CD3]">Time</label>
               <div className="relative">
-                <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B9CD3]" size={20} />
+                <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B9CD3]" size={18} />
                 <input
                   type="time"
                   name="time"
                   value={formData.time}
                   onChange={handleChange}
-                  className="w-full bg-gradient-to-r from-gray-900 to-gray-800 border border-[#4B9CD3] rounded-2xl pl-10 pr-4 py-3 text-white shadow-lg shadow-[#4B9CD3]/20 focus:shadow-xl focus:shadow-[#4B9CD3]/30 transition duration-300"
+                  className="w-full bg-gradient-to-r from-gray-800 to-gray-700 border border-[#4B9CD3] rounded-2xl pl-10 pr-4 py-3 text-white shadow-lg shadow-[#4B9CD3]/20 focus:shadow-xl focus:shadow-[#4B9CD3]/30 transition duration-300"
                   required
                 />
               </div>
@@ -116,12 +144,12 @@ export default function HostPage() {
             <div>
               <label className="block text-sm font-medium mb-2 text-[#4B9CD3]">Max Players</label>
               <div className="relative">
-                <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B9CD3]" size={20} />
+                <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B9CD3]" size={18} />
                 <select
                   name="maxPlayers"
                   value={formData.maxPlayers}
                   onChange={handleChange}
-                  className="w-full bg-gradient-to-r from-gray-900 to-gray-800 border border-[#4B9CD3] rounded-2xl pl-10 pr-4 py-3 text-white shadow-lg shadow-[#4B9CD3]/20 focus:shadow-xl focus:shadow-[#4B9CD3]/30 transition duration-300"
+                  className="w-full bg-gradient-to-r from-gray-800 to-gray-700 border border-[#4B9CD3] rounded-2xl pl-10 pr-4 py-3 text-white shadow-lg shadow-[#4B9CD3]/20 focus:shadow-xl focus:shadow-[#4B9CD3]/30 transition duration-300"
                 >
                   {[2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
                     <option key={num} value={num.toString()}>{num}</option>
@@ -133,7 +161,7 @@ export default function HostPage() {
             <div>
               <label className="block text-sm font-medium mb-2 text-[#4B9CD3]">Buy-in ($)</label>
               <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B9CD3]" size={20} />
+                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B9CD3]" size={18} />
                 <input
                   type="number"
                   name="buyIn"
@@ -141,7 +169,7 @@ export default function HostPage() {
                   onChange={handleChange}
                   placeholder="50"
                   min="0"
-                  className="w-full bg-gradient-to-r from-gray-900 to-gray-800 border border-[#4B9CD3] rounded-2xl pl-10 pr-4 py-3 text-white placeholder-[#A0A0A0] shadow-lg shadow-[#4B9CD3]/20 focus:shadow-xl focus:shadow-[#4B9CD3]/30 transition duration-300"
+                  className="w-full bg-gradient-to-r from-gray-800 to-gray-700 border border-[#4B9CD3] rounded-2xl pl-10 pr-4 py-3 text-white placeholder-[#A0A0A0] shadow-lg shadow-[#4B9CD3]/20 focus:shadow-xl focus:shadow-[#4B9CD3]/30 transition duration-300"
                   required
                 />
               </div>
@@ -152,17 +180,42 @@ export default function HostPage() {
           <div>
             <label className="block text-sm font-medium mb-2 text-[#4B9CD3]">Location</label>
             <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B9CD3]" size={20} />
+              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B9CD3]" size={18} />
               <input
                 type="text"
                 name="location"
                 value={formData.location}
                 onChange={handleChange}
                 placeholder="Enter address or location"
-                className="w-full bg-gradient-to-r from-gray-900 to-gray-800 border border-[#4B9CD3] rounded-2xl pl-10 pr-4 py-3 text-white placeholder-[#A0A0A0] shadow-lg shadow-[#4B9CD3]/20 focus:shadow-xl focus:shadow-[#4B9CD3]/30 transition duration-300"
+                className="w-full bg-gradient-to-r from-gray-800 to-gray-700 border border-[#4B9CD3] rounded-2xl pl-10 pr-4 py-3 text-white placeholder-[#A0A0A0] shadow-lg shadow-[#4B9CD3]/20 focus:shadow-xl focus:shadow-[#4B9CD3]/30 transition duration-300"
                 required
               />
             </div>
+          </div>
+
+          {/* Amenities */}
+          <div>
+            <label className="block text-sm font-medium mb-3 text-[#4B9CD3]">Amenities</label>
+            <div className="grid grid-cols-2 gap-3">
+              {amenities.map((amenity) => (
+                <button
+                  key={amenity.id}
+                  type="button"
+                  onClick={() => toggleAmenity(amenity.id)}
+                  className={`flex items-center gap-3 p-3 rounded-2xl border transition-all duration-300 ${
+                    selectedAmenities.includes(amenity.id)
+                      ? 'bg-gradient-to-r from-[#4B9CD3] to-[#7BB3E6] text-black border-[#4B9CD3] shadow-lg shadow-[#4B9CD3]/30'
+                      : 'bg-gradient-to-r from-gray-800 to-gray-700 text-[#A0A0A0] border-[#4B9CD3] hover:text-white shadow-lg shadow-[#4B9CD3]/20 hover:shadow-xl hover:shadow-[#4B9CD3]/30'
+                  }`}
+                >
+                  {amenity.icon}
+                  <span className="text-sm font-medium">{amenity.name}</span>
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-[#A0A0A0] mt-2">
+              Selected amenities will appear on your game listing
+            </p>
           </div>
 
           {/* Description */}
@@ -174,7 +227,7 @@ export default function HostPage() {
               onChange={handleChange}
               placeholder="Tell players about your game..."
               rows={4}
-              className="w-full bg-gradient-to-r from-gray-900 to-gray-800 border border-[#4B9CD3] rounded-2xl px-4 py-3 text-white placeholder-[#A0A0A0] resize-none shadow-lg shadow-[#4B9CD3]/20 focus:shadow-xl focus:shadow-[#4B9CD3]/30 transition duration-300"
+              className="w-full bg-gradient-to-r from-gray-800 to-gray-700 border border-[#4B9CD3] rounded-2xl px-4 py-3 text-white placeholder-[#A0A0A0] resize-none shadow-lg shadow-[#4B9CD3]/20 focus:shadow-xl focus:shadow-[#4B9CD3]/30 transition duration-300"
             />
           </div>
 
