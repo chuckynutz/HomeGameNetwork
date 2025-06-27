@@ -30,22 +30,17 @@ export default function RootLayout({
         <nav className="sticky top-0 z-50 w-full bg-black border-b border-gray-800 flex items-center justify-between px-8 py-3">
           <div className="flex items-center gap-3">
             <Link href="/">
-              <Image src="/logo.png" alt="The Home Game Logo" width={48} height={48} className="rounded-full" />
+              <Image src="/logo.png" alt="Home Game Network Logo" width={48} height={48} className="rounded-full" />
             </Link>
-            <span className="text-2xl font-bold text-[#4B9CD3]">The Home Game</span>
+            <span className="text-2xl font-bold text-[#4B9CD3]">Home Game Network</span>
           </div>
           <div className="flex-1 flex justify-center">
             <ul className="flex gap-6 text-lg font-medium">
               <li><Link href="/">Home</Link></li>
               <li><Link href="/games">Find Games</Link></li>
-              <li><Link href="/social">Social</Link></li>
               <li><Link href="/host">Host</Link></li>
-              <li><Link href="/lessons">Lessons</Link></li>
-              <li><Link href="/leaderboard">Leaderboard</Link></li>
-              <li><Link href="/achievements">Achievements</Link></li>
               <li><Link href="/profile">Profile</Link></li>
               <li><Link href="/shop">Shop</Link></li>
-              <li><Link href="/subscription">Subscription</Link></li>
             </ul>
           </div>
           <div className="flex gap-3">
