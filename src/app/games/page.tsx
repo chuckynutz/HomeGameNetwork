@@ -54,16 +54,16 @@ export default function GamesPage() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-[#001233] text-white">
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white">
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 border-b border-[#0A2463]">
+      <header className="flex items-center justify-between px-4 py-3 border-b border-[#4B9CD3] bg-gradient-to-r from-black to-gray-900">
         <button 
           onClick={() => router.back()}
-          className="text-[#A0A0A0]"
+          className="text-[#A0A0A0] hover:text-[#4B9CD3] transition duration-300"
         >
           ← Back
         </button>
-        <h1 className="text-xl font-bold">Find Games</h1>
+        <h1 className="text-xl font-bold text-[#4B9CD3]">Find Games</h1>
         <div className="w-8" /> {/* Spacer for centering */}
       </header>
       
@@ -75,11 +75,11 @@ export default function GamesPage() {
             <input
               type="text"
               placeholder="Search games..."
-              className="w-full bg-[#001845] border border-[#0A2463] rounded-lg pl-10 pr-4 py-3 text-white placeholder-[#A0A0A0]"
+              className="w-full bg-gradient-to-r from-gray-900 to-gray-800 border border-[#4B9CD3] rounded-2xl pl-10 pr-4 py-3 text-white placeholder-[#A0A0A0] shadow-lg shadow-[#4B9CD3]/20 focus:shadow-xl focus:shadow-[#4B9CD3]/30 transition duration-300"
             />
           </div>
           
-          <button className="w-full bg-[#001845] border border-[#0A2463] rounded-lg p-3 flex items-center justify-center text-[#A0A0A0]">
+          <button className="w-full bg-gradient-to-r from-gray-900 to-gray-800 border border-[#4B9CD3] rounded-2xl p-3 flex items-center justify-center text-[#A0A0A0] hover:text-[#4B9CD3] transition duration-300 shadow-lg shadow-[#4B9CD3]/20 hover:shadow-xl hover:shadow-[#4B9CD3]/30">
             <Filter size={20} className="mr-2" />
             Filter Games
           </button>
@@ -90,7 +90,7 @@ export default function GamesPage() {
           {mockGames.map((game) => (
             <div 
               key={game.id}
-              className="bg-[#001845] border border-[#0A2463] rounded-xl overflow-hidden cursor-pointer"
+              className="bg-gradient-to-br from-gray-900 to-gray-800 border border-[#4B9CD3] rounded-2xl overflow-hidden cursor-pointer shadow-lg shadow-[#4B9CD3]/20 hover:shadow-xl hover:shadow-[#4B9CD3]/30 transition duration-300 transform hover:scale-105"
               onClick={() => router.push(`/game/${game.id}`)}
             >
               <div className="relative h-32">
@@ -99,14 +99,14 @@ export default function GamesPage() {
                   alt={game.title}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute top-2 right-2 bg-[#0052CC] text-white px-2 py-1 rounded-full text-xs font-bold">
+                <div className="absolute top-2 right-2 bg-gradient-to-r from-[#4B9CD3] to-[#7BB3E6] text-black px-3 py-1 rounded-full text-xs font-bold shadow-lg">
                   ${game.buyIn}
                 </div>
               </div>
               
               <div className="p-4">
                 <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-lg font-bold">{game.title}</h3>
+                  <h3 className="text-lg font-bold text-[#4B9CD3]">{game.title}</h3>
                   <span className="text-[#10B981] text-sm font-bold">
                     {game.currentPlayers}/{game.maxPlayers}
                   </span>
@@ -116,12 +116,12 @@ export default function GamesPage() {
                 
                 <div className="space-y-2">
                   <div className="flex items-center text-sm">
-                    <MapPin size={16} className="mr-2 text-[#A0A0A0]" />
+                    <MapPin size={16} className="mr-2 text-[#4B9CD3]" />
                     <span>{game.location.address}, {game.location.city}, {game.location.state}</span>
                   </div>
                   
                   <div className="flex items-center text-sm">
-                    <Calendar size={16} className="mr-2 text-[#A0A0A0]" />
+                    <Calendar size={16} className="mr-2 text-[#4B9CD3]" />
                     <span>
                       {new Date(game.date).toLocaleDateString('en-US', {
                         weekday: 'short',
@@ -132,12 +132,12 @@ export default function GamesPage() {
                   </div>
                   
                   <div className="flex items-center text-sm">
-                    <Users size={16} className="mr-2 text-[#A0A0A0]" />
+                    <Users size={16} className="mr-2 text-[#4B9CD3]" />
                     <span>{game.gameType} • {game.skillLevel}</span>
                   </div>
                 </div>
                 
-                <button className="w-full bg-[#0052CC] text-white font-bold py-2 rounded-lg mt-4">
+                <button className="w-full bg-gradient-to-r from-[#4B9CD3] to-[#7BB3E6] text-black font-bold py-3 rounded-2xl mt-4 hover:from-[#3A8BC2] hover:to-[#6AA2D5] transition duration-300 shadow-lg shadow-[#4B9CD3]/30 hover:shadow-xl hover:shadow-[#4B9CD3]/40 transform hover:scale-105">
                   Join Game
                 </button>
               </div>
@@ -146,7 +146,7 @@ export default function GamesPage() {
         </div>
         
         {/* Load More */}
-        <button className="w-full bg-[#001845] border border-[#0A2463] p-3 rounded-lg font-bold mt-6 text-[#A0A0A0]">
+        <button className="w-full bg-gradient-to-r from-gray-900 to-gray-800 border border-[#4B9CD3] p-3 rounded-2xl font-bold mt-6 text-[#A0A0A0] hover:text-[#4B9CD3] transition duration-300 shadow-lg shadow-[#4B9CD3]/20 hover:shadow-xl hover:shadow-[#4B9CD3]/30">
           Load More Games
         </button>
       </div>
