@@ -39,6 +39,7 @@ export default function RootLayout({
               <li><Link href="/" className="hover:text-[#4B9CD3] transition duration-300">Home</Link></li>
               <li><Link href="/games" className="hover:text-[#4B9CD3] transition duration-300">Find Games</Link></li>
               <li><Link href="/host" className="hover:text-[#4B9CD3] transition duration-300">Host</Link></li>
+              <li><Link href="/social" className="hover:text-[#4B9CD3] transition duration-300">Social</Link></li>
               <li><Link href="/profile" className="hover:text-[#4B9CD3] transition duration-300">Profile</Link></li>
               <li><Link href="/shop" className="hover:text-[#4B9CD3] transition duration-300">Shop</Link></li>
               <li><Link href="/subscription" className="hover:text-[#4B9CD3] transition duration-300">Subscription</Link></li>
