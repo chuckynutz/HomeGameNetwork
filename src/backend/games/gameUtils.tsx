@@ -17,6 +17,8 @@ interface SearchGameOptions {
     docId?: string
 }
 
+
+
 export async function hostGame(data: {
     gameTitle: string,
     gameType: string,
@@ -209,6 +211,116 @@ export async function uploadPhoto(file: File, folderPath: string, gameId: string
         return downloadURL;
     } catch (error) {
         console.error('Error uploading game photo:', error);
+        return null;
+    }
+}
+
+export async function getGameTitle(gameDocId: string): Promise<string | null> {
+    try {
+        const game = await getGameById(gameDocId);
+        return game?.gameTitle || null;
+    } catch (error) {
+        console.error('Error fetching game title:', error);
+        return null;
+    }
+}
+
+export async function getGameType(gameDocId: string): Promise<string | null> {
+    try {
+        const game = await getGameById(gameDocId);
+        return game?.gameType || null;
+    } catch (error) {
+        console.error('Error fetching game type:', error);
+        return null;
+    }
+}
+
+export async function getHostId(gameDocId: string): Promise<string | null> {
+    try {
+        const game = await getGameById(gameDocId);
+        return game?.hostId || null;
+    } catch (error) {
+        console.error('Error fetching host ID:', error);
+        return null;
+    }
+}
+
+export async function getHostName(gameDocId: string): Promise<string | null> {
+    try {
+        const game = await getGameById(gameDocId);
+        return game?.hostName || null;
+    } catch (error) {
+        console.error('Error fetching host name:', error);
+        return null;
+    }
+}
+
+export async function getGamePhotoURL(gameDocId: string): Promise<string | null> {
+    try {
+        const game = await getGameById(gameDocId);
+        return game?.photoURL || null;
+    } catch (error) {
+        console.error('Error fetching game photo URL:', error);
+        return null;
+    }
+}
+
+export async function getGameDate(gameDocId: string): Promise<Timestamp | null> {
+    try {
+        const game = await getGameById(gameDocId);
+        return game?.date || null;
+    } catch (error) {
+        console.error('Error fetching game date:', error);
+        return null;
+    }
+}
+
+export async function getMaxPlayers(gameDocId: string): Promise<number | null> {
+    try {
+        const game = await getGameById(gameDocId);
+        return game?.maxPlayers || null;
+    } catch (error) {
+        console.error('Error fetching max players:', error);
+        return null;
+    }
+}
+
+export async function getBuyIn(gameDocId: string): Promise<number | null> {
+    try {
+        const game = await getGameById(gameDocId);
+        return game?.buyIn || null;
+    } catch (error) {
+        console.error('Error fetching buy-in:', error);
+        return null;
+    }
+}
+
+export async function getGameAddress(gameDocId: string): Promise<string | null> {
+    try {
+        const game = await getGameById(gameDocId);
+        return game?.address || null;
+    } catch (error) {
+        console.error('Error fetching game address:', error);
+        return null;
+    }
+}
+
+export async function getChosenAmenities(gameDocId: string): Promise<string[] | null> {
+    try {
+        const game = await getGameById(gameDocId);
+        return game?.chosenAmenities || null;
+    } catch (error) {
+        console.error('Error fetching chosen amenities:', error);
+        return null;
+    }
+}
+
+export async function getGameDescription(gameDocId: string): Promise<string | null> {
+    try {
+        const game = await getGameById(gameDocId);
+        return game?.description || null;
+    } catch (error) {
+        console.error('Error fetching game description:', error);
         return null;
     }
 }
