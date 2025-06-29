@@ -130,37 +130,37 @@ export async function searchGames(options: SearchGameOptions = {}): Promise<any 
     try {
         const gamesRef = collection(db, 'games');
         const querySnapshot = await getDocs(gamesRef);
+        
+        // If no search criteria provided, return all games
+        const hasSearchCriteria = gameTitle || gameType || hostId || hostName || date || maxPlayers || buyIn || address || docId || (chosenAmenities && chosenAmenities.length > 0) || description;
+        
         for (const doc of querySnapshot.docs) {
             const game = doc.data();
             let match = true;
 
-            if (gameTitle && game.gameTitle !== gameTitle) match = false;
-            if (gameType && game.gameType !== gameType) match = false;
-            if (hostId && game.hostId !== hostId) match = false;
-            if (hostName && game.hostName !== hostName) match = false;
-            if (date && (!game.date || game.date.toMillis() !== date.toMillis())) match = false;
-            if (maxPlayers && game.maxPlayers !== maxPlayers) match = false;
-            if (buyIn && game.buyIn !== buyIn) match = false;
-            if (address && game.address !== address) match = false;
-            if (docId && doc.id !== docId) match = false;
-            if (chosenAmenities && chosenAmenities.length > 0) {
-                if (!game.chosenAmenities || !chosenAmenities.every((a: string) => game.chosenAmenities.includes(a))) {
-                    match = false;
+            if (hasSearchCriteria) {
+                if (gameTitle && game.gameTitle !== gameTitle) match = false;
+                if (gameType && game.gameType !== gameType) match = false;
+                if (hostId && game.hostId !== hostId) match = false;
+                if (hostName && game.hostName !== hostName) match = false;
+                if (date && (!game.date || game.date.toMillis() !== date.toMillis())) match = false;
+                if (maxPlayers && game.maxPlayers !== maxPlayers) match = false;
+                if (buyIn && game.buyIn !== buyIn) match = false;
+                if (address && game.address !== address) match = false;
+                if (docId && doc.id !== docId) match = false;
+                if (chosenAmenities && chosenAmenities.length > 0) {
+                    if (!game.chosenAmenities || !chosenAmenities.every((a: string) => game.chosenAmenities.includes(a))) {
+                        match = false;
+                    }
                 }
+                if (description && game.description !== description) match = false;
             }
-            if (description && game.description !== description) match = false;
 
             if (match) {
                 games.push({id:doc.id,...game});
-                break;
             }
         }   
-        if (games.length > 0) {
-            return games; // Return all matching games
-        } else {
-            console.log('No matching game found');
-            return null;
-        }
+        return games; // Return all matching games (or all games if no criteria)
     }
     catch (error) {
         console.error('Error fetching games:', error);

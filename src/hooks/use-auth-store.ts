@@ -18,12 +18,18 @@ interface AuthState {
   setUser: (user: User | null) => void;
   logout: () => void;
 }
-
+// THIS SHOULD BE PHASED OUT ONCE FIREBASE AUTH IS INTEGRATED. Right now wer're just this test user
 export const useAuthStore = create<AuthState>((set) => ({
-  isAuthenticated: false,
-  isAgeVerified: false,
-  isFirstOpen: true,
-  user: null,
+  // For testing purposes, we'll start with a mock user
+  isAuthenticated: true,
+  isAgeVerified: true,
+  isFirstOpen: false,
+  user: {
+    id: 'test-user-id',
+    name: 'Test User',
+    email: 'test@example.com',
+    avatar: ''
+  },
   setAuthenticated: (authenticated) => set({ isAuthenticated: authenticated }),
   setAgeVerified: (verified) => set({ isAgeVerified: verified }),
   setFirstOpen: (firstOpen) => set({ isFirstOpen: firstOpen }),
