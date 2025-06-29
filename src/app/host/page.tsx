@@ -256,6 +256,9 @@ export default function HostPage() {
                 required
               />
             </div>
+            <label className="block text-xs text-[#A0A0A0] mt-1">
+              *Only approved players can view the full address
+            </label>
           </div>
 
           {/* Photo Upload */}

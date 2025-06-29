@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, MapPin, Users, Calendar, Clock, DollarSign, MessageCircle, Share2 } from 'lucide-react';
+import { ArrowLeft, MapPin, Users, Calendar, Clock, DollarSign, MessageCircle, Share2, Wifi, Coffee, Car, Cigarette, ParkingCircle, Utensils, Wine, Music, Tv } from 'lucide-react';
 
 interface GameData {
   id: string;
@@ -31,6 +31,18 @@ interface GameData {
     status: string;
   }>;
 }
+
+// Amenities mapping with icons
+const amenitiesMap: { [key: string]: { name: string; icon: React.ReactNode } } = {
+  wifi: { name: 'WiFi', icon: <Wifi size={16} /> },
+  coffee: { name: 'Coffee', icon: <Coffee size={16} /> },
+  parking: { name: 'Parking', icon: <Car size={16} /> },
+  smoking: { name: 'Smoking', icon: <Cigarette size={16} /> },
+  food: { name: 'Food', icon: <Utensils size={16} /> },
+  alcohol: { name: 'Alcohol', icon: <Wine size={16} /> },
+  music: { name: 'Music', icon: <Music size={16} /> },
+  tv: { name: 'TV', icon: <Tv size={16} /> },
+};
 
 export default function GameDetailPage() {
   const router = useRouter();
@@ -201,6 +213,28 @@ export default function GameDetailPage() {
           <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-[#4B9CD3] rounded-2xl p-4 shadow-lg shadow-[#4B9CD3]/20">
             <h3 className="text-lg font-bold mb-3 text-[#4B9CD3]">About This Game</h3>
             <p className="text-[#A0A0A0] leading-relaxed">{game.description}</p>
+            
+            {/* Amenities */}
+            {game.amenities && game.amenities.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-[#4B9CD3]/30">
+                <h4 className="text-md font-semibold mb-3 text-[#4B9CD3]">Available Amenities</h4>
+                <div className="flex flex-wrap gap-2">
+                  {game.amenities.map((amenityId) => {
+                    const amenity = amenitiesMap[amenityId];
+                    if (!amenity) return null;
+                    return (
+                      <div
+                        key={amenityId}
+                        className="flex items-center gap-2 bg-gradient-to-r from-[#4B9CD3] to-[#7BB3E6] text-black px-3 py-1.5 rounded-full text-sm font-semibold shadow-md"
+                      >
+                        {amenity.icon}
+                        <span>{amenity.name}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Players */}
@@ -243,4 +277,4 @@ export default function GameDetailPage() {
       </div>
     </div>
   );
-} 
+}
