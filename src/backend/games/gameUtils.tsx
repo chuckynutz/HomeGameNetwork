@@ -2,7 +2,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, setDoc, getDoc, deleteDoc, Timestamp, collection, getDocs, addDoc } from 'firebase/firestore';
 import { storage, db } from '../../lib/firebase'
 
-interface SearchGameOptions {
+export interface SearchGameOptions {
     gameTitle?: string,
     gameType?: string,
     hostId?: string,
@@ -15,6 +15,17 @@ interface SearchGameOptions {
     chosenAmenities?: string[],
     description?: string,
     docId?: string
+}
+
+export interface GameImage {
+    id: string,
+    url: string,
+    fileName: string,
+    fileSize: number,
+    fileType: string,
+    uploadedAt: Timestamp,
+    isMainImage: boolean,
+    order?: number
 }
 
 
@@ -38,22 +49,20 @@ export async function hostGame(data: {
             return null;
         }
         
-        // Create the game document first to get the ID
+        // Create the game document first to get the ID (exclude photo from initial data)
+        const { photo, ...gameDataWithoutPhoto } = data;
         const gamesRef = collection(db, 'games');
-        const docRef = await addDoc(gamesRef, data);
+        const docRef = await addDoc(gamesRef, gameDataWithoutPhoto);
         
-        let photoURL: string | null = null;
-        if (data.photo) {
-            photoURL = await uploadPhoto(data.photo, "games", docRef.id);
-            if (!photoURL) {
+        let imageUrl: string | null = null;
+        if (photo) {
+            imageUrl = await saveImageToFirestore(photo, docRef.id);
+            if (!imageUrl) {
                 console.error('Failed to upload game photo');
                 // Clean up the document if photo upload fails
                 await deleteDoc(docRef);
                 return null;
             }
-            
-            // Update the document with the photo URL
-            await setDoc(docRef, { photoURL }, { merge: true });
         }
         
         return docRef.id;
@@ -81,7 +90,7 @@ export async function updateGame(gameDocId: string, SearchGameOptions: SearchGam
         if (SearchGameOptions.gameType)        updatedData.gameType = SearchGameOptions.gameType;
         if (SearchGameOptions.hostId)          updatedData.hostId = SearchGameOptions.hostId;
         if (SearchGameOptions.hostName)        updatedData.hostName = SearchGameOptions.hostName;
-        if (SearchGameOptions.photo)           updatedData.photoURL = await uploadPhoto(SearchGameOptions.photo, "games", gameDocId);
+        if (SearchGameOptions.photo)           updatedData.imageUrl = await saveImageToFirestore(SearchGameOptions.photo, gameDocId);
         if (SearchGameOptions.date)            updatedData.date = SearchGameOptions.date;
         if (SearchGameOptions.maxPlayers)      updatedData.maxPlayers = SearchGameOptions.maxPlayers;
         if (SearchGameOptions.buyIn)           updatedData.buyIn = SearchGameOptions.buyIn;
@@ -170,8 +179,11 @@ export async function searchGames(options: SearchGameOptions = {}): Promise<any 
 
 export async function deleteGame(gameId: string): Promise<boolean> {
     try {
+        // Delete the main game document (images are stored in Firebase Storage, not Firestore subcollections)
         const gameRef = doc(db, 'games', gameId);
         await deleteDoc(gameRef);
+        
+        console.log('Game deleted successfully:', gameId);
         return true;
     } catch (error) {
         console.error('Error deleting game:', error);
@@ -212,6 +224,70 @@ export async function uploadPhoto(file: File, folderPath: string, gameId: string
     } catch (error) {
         console.error('Error uploading game photo:', error);
         return null;
+    }
+}
+
+export async function saveImageToFirestore(file: File, gameId: string): Promise<string | null> {
+    try {
+        if (!file) {
+            console.error('No file provided for upload');
+            return null;
+        }
+
+        // Upload to Firebase Storage at /games/gameDocId/images/filename
+        const storageRef = ref(storage, `games/${gameId}/images/${file.name}`);
+        await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(storageRef);
+
+        // Save the image URL directly to the game document in Firestore
+        const gameRef = doc(db, 'games', gameId);
+        await setDoc(gameRef, { 
+            imageUrl: downloadURL,
+            imageName: file.name,
+            imageUploadedAt: Timestamp.now()
+        }, { merge: true });
+
+        console.log('Image saved to Firebase Storage and URL saved to Firestore');
+        return downloadURL;
+    } catch (error) {
+        console.error('Error saving image:', error);
+        return null;
+    }
+}
+
+export async function saveMultipleImagesToFirestore(files: File[], gameId: string): Promise<string[]> {
+    try {
+        const uploadPromises = files.map(async (file, index) => {
+            // Upload to Firebase Storage at /games/gameDocId/images/filename
+            const storageRef = ref(storage, `games/${gameId}/images/${file.name}`);
+            await uploadBytes(storageRef, file);
+            const downloadURL = await getDownloadURL(storageRef);
+
+            return {
+                url: downloadURL,
+                fileName: file.name,
+                fileSize: file.size,
+                fileType: file.type,
+                uploadedAt: Timestamp.now(),
+                isMainImage: index === 0, // First image is main image
+                order: index
+            };
+        });
+
+        const uploadedImages = await Promise.all(uploadPromises);
+        
+        // Save all image URLs to the game document in Firestore
+        const gameRef = doc(db, 'games', gameId);
+        await setDoc(gameRef, { 
+            images: uploadedImages,
+            mainImageUrl: uploadedImages[0]?.url || null
+        }, { merge: true });
+
+        console.log('Multiple images saved to Firebase Storage and URLs saved to Firestore:', uploadedImages.length);
+        return uploadedImages.map(img => img.url);
+    } catch (error) {
+        console.error('Error saving multiple images:', error);
+        return [];
     }
 }
 
@@ -258,7 +334,7 @@ export async function getHostName(gameDocId: string): Promise<string | null> {
 export async function getGamePhotoURL(gameDocId: string): Promise<string | null> {
     try {
         const game = await getGameById(gameDocId);
-        return game?.photoURL || null;
+        return game?.imageUrl || game?.photoURL || null;
     } catch (error) {
         console.error('Error fetching game photo URL:', error);
         return null;
@@ -321,6 +397,36 @@ export async function getGameDescription(gameDocId: string): Promise<string | nu
         return game?.description || null;
     } catch (error) {
         console.error('Error fetching game description:', error);
+        return null;
+    }
+}
+
+export async function getGameImages(gameDocId: string): Promise<GameImage[] | null> {
+    try {
+        const game = await getGameById(gameDocId);
+        if (!game || !game.images) {
+            console.log('No images found for game:', gameDocId);
+            return [];
+        }
+
+        return game.images as GameImage[];
+    } catch (error) {
+        console.error('Error fetching game images:', error);
+        return null;
+    }
+}
+
+export async function getMainGameImage(gameDocId: string): Promise<string | null> {
+    try {
+        const game = await getGameById(gameDocId);
+        if (!game) {
+            return null;
+        }
+
+        // Check for imageUrl (single image) or mainImageUrl (multiple images)
+        return game.imageUrl || game.mainImageUrl || null;
+    } catch (error) {
+        console.error('Error fetching main game image:', error);
         return null;
     }
 }

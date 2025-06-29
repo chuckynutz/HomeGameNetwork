@@ -36,7 +36,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     
     if (!id) {
       return NextResponse.json(
@@ -60,7 +60,7 @@ export async function GET(
       title: game.gameTitle,
       host: game.hostName,
       hostId: game.hostId,
-      image: game.photoURL || 'https://images.unsplash.com/photo-1541278107931-e006523892df?w=400&h=200&fit=crop',
+      image: game.imageUrl || game.photoURL || 'https://images.unsplash.com/photo-1541278107931-e006523892df?w=400&h=200&fit=crop',
       location: {
         address: game.address,
         // Better address parsing
