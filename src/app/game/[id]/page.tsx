@@ -1,47 +1,114 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, MapPin, Users, Calendar, Clock, DollarSign, MessageCircle, Share2 } from 'lucide-react';
+import { ArrowLeft, MapPin, Users, Calendar, Clock, DollarSign, MessageCircle, Share2, Wifi, Coffee, Car, Cigarette, ParkingCircle, Utensils, Wine, Music, Tv } from 'lucide-react';
 
-// Mock game data
-const mockGame = {
-  id: '1',
-  title: 'Friday Night Poker',
-  host: 'Mike Johnson',
-  hostAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
-  image: 'https://images.unsplash.com/photo-1541278107931-e006523892df?w=400&h=200&fit=crop',
-  location: { 
-    city: 'Austin', 
-    state: 'TX', 
-    address: '123 Main St, Austin, TX 78701',
-    coordinates: { lat: 30.2672, lng: -97.7431 }
-  },
-  date: '2024-01-15',
-  time: '19:00',
-  currentPlayers: 6,
-  maxPlayers: 8,
-  buyIn: 50,
-  gameType: 'Texas Hold\'em',
-  skillLevel: 'Intermediate',
-  description: 'Casual Friday night poker game. All skill levels welcome. We play Texas Hold\'em with friendly stakes. Snacks and drinks provided.',
-  players: [
-    { id: '1', name: 'Mike Johnson', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50&h=50&fit=crop&crop=face', status: 'host' },
-    { id: '2', name: 'Sarah Wilson', avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=50&h=50&fit=crop&crop=face', status: 'confirmed' },
-    { id: '3', name: 'David Chen', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face', status: 'confirmed' },
-    { id: '4', name: 'Emily Davis', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=50&h=50&fit=crop&crop=face', status: 'confirmed' },
-    { id: '5', name: 'John Smith', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=50&h=50&fit=crop&crop=face', status: 'confirmed' },
-    { id: '6', name: 'Lisa Brown', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=50&h=50&fit=crop&crop=face', status: 'confirmed' },
-  ]
+interface GameData {
+  id: string;
+  title: string;
+  host: string;
+  hostId: string;
+  image: string;
+  location: {
+    address: string;
+    city: string;
+    state: string;
+  };
+  date: string;
+  time: string;
+  datetime: string;
+  currentPlayers: number;
+  maxPlayers: number;
+  buyIn: number;
+  gameType: string;
+  description: string;
+  amenities: string[];
+  players: Array<{
+    id: string;
+    name: string;
+    avatar: string;
+    status: string;
+  }>;
+}
+
+// Amenities mapping with icons
+const amenitiesMap: { [key: string]: { name: string; icon: React.ReactNode } } = {
+  wifi: { name: 'WiFi', icon: <Wifi size={16} /> },
+  coffee: { name: 'Coffee', icon: <Coffee size={16} /> },
+  parking: { name: 'Parking', icon: <Car size={16} /> },
+  smoking: { name: 'Smoking', icon: <Cigarette size={16} /> },
+  food: { name: 'Food', icon: <Utensils size={16} /> },
+  alcohol: { name: 'Alcohol', icon: <Wine size={16} /> },
+  music: { name: 'Music', icon: <Music size={16} /> },
+  tv: { name: 'TV', icon: <Tv size={16} /> },
 };
 
 export default function GameDetailPage() {
   const router = useRouter();
   const params = useParams();
   const gameId = params.id as string;
+  
+  const [game, setGame] = useState<GameData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // In a real app, you would fetch the game data based on the ID
-  const game = mockGame;
+  useEffect(() => {
+    const fetchGame = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/games/${gameId}`);
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            setError('Game not found');
+          } else {
+            setError('Failed to load game details');
+          }
+          return;
+        }
+        
+        const gameData = await response.json();
+        setGame(gameData);
+      } catch (err) {
+        console.error('Error fetching game:', err);
+        setError('Failed to load game details');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (gameId) {
+      fetchGame();
+    }
+  }, [gameId]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white p-4 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4B9CD3] mx-auto mb-4"></div>
+          <p className="text-[#A0A0A0]">Loading game details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !game) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white p-4 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-400 mb-4">{error || 'Game not found'}</p>
+          <button 
+            onClick={() => router.back()}
+            className="bg-gradient-to-r from-[#4B9CD3] to-[#7BB3E6] text-black font-bold py-2 px-6 rounded-full"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const handleJoinGame = () => {
     // Here you would typically send a request to join the game
@@ -91,7 +158,7 @@ export default function GameDetailPage() {
             <h2 className="text-2xl font-bold mb-3 text-[#4B9CD3]">{game.title}</h2>
             <div className="flex items-center bg-gradient-to-br from-gray-800 to-gray-700 border border-[#4B9CD3] rounded-2xl p-4 shadow-lg shadow-[#4B9CD3]/20">
               <img 
-                src={game.hostAvatar} 
+                src={game.players.find(p => p.status === 'host')?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face'} 
                 alt={game.host}
                 className="w-12 h-12 rounded-full mr-4 border-2 border-[#4B9CD3]"
               />
@@ -109,12 +176,16 @@ export default function GameDetailPage() {
               <div>
                 <p className="text-sm text-[#A0A0A0]">Date & Time</p>
                 <p className="font-bold text-white">
-                  {new Date(game.date).toLocaleDateString('en-US', {
+                  {new Date(game.datetime).toLocaleDateString('en-US', {
                     weekday: 'long',
                     month: 'long',
                     day: 'numeric',
                     year: 'numeric'
-                  })} at {game.time}
+                  })} at {new Date(game.datetime).toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                  })}
                 </p>
               </div>
             </div>
@@ -132,7 +203,7 @@ export default function GameDetailPage() {
               <div>
                 <p className="text-sm text-[#A0A0A0]">Players</p>
                 <p className="font-bold text-white">
-                  {game.currentPlayers}/{game.maxPlayers} • {game.gameType} • {game.skillLevel}
+                  {game.currentPlayers}/{game.maxPlayers} • {game.gameType}
                 </p>
               </div>
             </div>
@@ -142,6 +213,28 @@ export default function GameDetailPage() {
           <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-[#4B9CD3] rounded-2xl p-4 shadow-lg shadow-[#4B9CD3]/20">
             <h3 className="text-lg font-bold mb-3 text-[#4B9CD3]">About This Game</h3>
             <p className="text-[#A0A0A0] leading-relaxed">{game.description}</p>
+            
+            {/* Amenities */}
+            {game.amenities && game.amenities.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-[#4B9CD3]/30">
+                <h4 className="text-md font-semibold mb-3 text-[#4B9CD3]">Available Amenities</h4>
+                <div className="flex flex-wrap gap-2">
+                  {game.amenities.map((amenityId) => {
+                    const amenity = amenitiesMap[amenityId];
+                    if (!amenity) return null;
+                    return (
+                      <div
+                        key={amenityId}
+                        className="flex items-center gap-2 bg-gradient-to-r from-[#4B9CD3] to-[#7BB3E6] text-black px-3 py-1.5 rounded-full text-sm font-semibold shadow-md"
+                      >
+                        {amenity.icon}
+                        <span>{amenity.name}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Players */}
@@ -184,4 +277,4 @@ export default function GameDetailPage() {
       </div>
     </div>
   );
-} 
+}

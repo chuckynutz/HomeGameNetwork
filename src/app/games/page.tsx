@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { MapPin, Users, Calendar, DollarSign, Search, Filter, List, Map, X } from 'lucide-react';
 
@@ -105,6 +105,9 @@ const buyInRanges = [
 
 export default function GamesPage() {
   const router = useRouter();
+  const [games, setGames] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
@@ -112,16 +115,40 @@ export default function GamesPage() {
   const [selectedSkillLevel, setSelectedSkillLevel] = useState('All');
   const [selectedBuyInRange, setSelectedBuyInRange] = useState('All');
 
+  // Fetch games from API
+  useEffect(() => {
+    const fetchGames = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch('/api/games');
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch games');
+        }
+        
+        const gamesData = await response.json();
+        setGames(gamesData);
+      } catch (error) {
+        console.error('Error fetching games:', error);
+        setError('Failed to load games. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchGames();
+  }, []);
+
   // Filter games based on search and filter criteria
   const filteredGames = useMemo(() => {
-    let filtered = mockGames;
+    let filtered = games;
 
     // Search filter
     if (searchQuery) {
       filtered = filtered.filter(game =>
         game.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         game.host.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        game.location.city.toLowerCase().includes(searchQuery.toLowerCase())
+        (game.location.city && game.location.city.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     }
 
@@ -144,7 +171,7 @@ export default function GamesPage() {
     }
 
     return filtered;
-  }, [searchQuery, selectedGameType, selectedSkillLevel, selectedBuyInRange]);
+  }, [games, searchQuery, selectedGameType, selectedSkillLevel, selectedBuyInRange]);
 
   const clearFilters = () => {
     setSelectedGameType('All');
@@ -335,102 +362,127 @@ export default function GamesPage() {
         {/* Results Count */}
         <div className="mb-4">
           <p className="text-sm text-[#A0A0A0]">
-            Showing {filteredGames.length} of {mockGames.length} games
+            Showing {filteredGames.length} of {games.length} games
           </p>
         </div>
 
-        {/* Content */}
-        {viewMode === 'list' ? (
-          /* List View */
-          <div className="space-y-4">
-            {filteredGames.length > 0 ? (
-              filteredGames.map((game) => (
-                <div 
-                  key={game.id}
-                  className="bg-gradient-to-br from-gray-800 to-gray-700 border border-[#4B9CD3] rounded-2xl overflow-hidden cursor-pointer shadow-lg shadow-[#4B9CD3]/20 hover:shadow-xl hover:shadow-[#4B9CD3]/30 transition duration-300 transform hover:scale-105"
-                  onClick={() => router.push(`/game/${game.id}`)}
-                >
-                  <div className="relative h-24">
-                    <img 
-                      src={game.image} 
-                      alt={game.title}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute top-2 right-2 bg-gradient-to-r from-[#4B9CD3] to-[#7BB3E6] text-black px-2 py-1 rounded-full text-xs font-bold shadow-lg">
-                      ${game.buyIn}
-                    </div>
-                  </div>
-                  
-                  <div className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-lg font-bold text-[#4B9CD3]">{game.title}</h3>
-                      <span className="text-[#10B981] text-sm font-bold">
-                        {game.currentPlayers}/{game.maxPlayers}
-                      </span>
-                    </div>
-                    
-                    <p className="text-[#A0A0A0] text-sm mb-3">Hosted by {game.host}</p>
-                    
-                    <div className="space-y-2">
-                      <div className="flex items-center text-sm">
-                        <MapPin size={14} className="mr-2 text-[#4B9CD3]" />
-                        <span className="text-[#A0A0A0]">{game.location.city}, {game.location.state}</span>
-                      </div>
-                      
-                      <div className="flex items-center text-sm">
-                        <Calendar size={14} className="mr-2 text-[#4B9CD3]" />
-                        <span className="text-[#A0A0A0]">
-                          {new Date(game.date).toLocaleDateString('en-US', {
-                            weekday: 'short',
-                            month: 'short',
-                            day: 'numeric'
-                          })} at {game.time}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center text-sm">
-                        <Users size={14} className="mr-2 text-[#4B9CD3]" />
-                        <span className="text-[#A0A0A0]">{game.gameType} • {game.skillLevel}</span>
-                      </div>
-                    </div>
-                    
-                    <button className="w-full bg-gradient-to-r from-[#4B9CD3] to-[#7BB3E6] text-black font-bold py-2 rounded-2xl mt-3 hover:from-[#3A8BC2] hover:to-[#6AA2D5] transition duration-300 shadow-lg shadow-[#4B9CD3]/30 hover:shadow-xl hover:shadow-[#4B9CD3]/40 transform hover:scale-105">
-                      Join Game
-                    </button>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-[#A0A0A0] text-lg">No games found matching your criteria</p>
-                <button
-                  onClick={clearFilters}
-                  className="mt-4 bg-gradient-to-r from-[#4B9CD3] to-[#7BB3E6] text-black font-bold py-2 px-4 rounded-2xl hover:from-[#3A8BC2] hover:to-[#6AA2D5] transition duration-300"
-                >
-                  Clear Filters
-                </button>
-              </div>
-            )}
-          </div>
-        ) : (
-          /* Map View */
-          <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-[#4B9CD3] rounded-2xl p-6 text-center shadow-lg shadow-[#4B9CD3]/20">
-            <Map size={48} className="mx-auto mb-4 text-[#4B9CD3]" />
-            <h3 className="text-lg font-bold text-[#4B9CD3] mb-2">Map View</h3>
-            <p className="text-[#A0A0A0] text-sm">
-              Interactive map showing game locations will be displayed here.
-            </p>
-            <p className="text-[#A0A0A0] text-xs mt-2">
-              Click on markers to see game details and join directly from the map.
-            </p>
+        {/* Loading State */}
+        {isLoading && (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4B9CD3] mx-auto mb-4"></div>
+            <p className="text-[#A0A0A0] text-lg">Loading games...</p>
           </div>
         )}
-        
-        {/* Load More */}
-        {filteredGames.length > 0 && (
-          <button className="w-full bg-gradient-to-r from-gray-800 to-gray-700 border border-[#4B9CD3] p-3 rounded-2xl font-bold mt-6 text-[#A0A0A0] hover:text-[#4B9CD3] transition duration-300 shadow-lg shadow-[#4B9CD3]/20 hover:shadow-xl hover:shadow-[#4B9CD3]/30">
-            Load More Games
-          </button>
+
+        {/* Error State */}
+        {error && (
+          <div className="bg-red-500/20 border border-red-500 rounded-2xl p-6 text-center">
+            <p className="text-red-400 text-lg mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-gradient-to-r from-[#4B9CD3] to-[#7BB3E6] text-black font-bold py-2 px-4 rounded-2xl hover:from-[#3A8BC2] hover:to-[#6AA2D5] transition duration-300"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
+        {/* Content */}
+        {!isLoading && !error && (
+          <>
+            {viewMode === 'list' ? (
+              /* List View */
+              <div className="space-y-4">
+                {filteredGames.length > 0 ? (
+                  filteredGames.map((game) => (
+                    <div 
+                      key={game.id}
+                      className="bg-gradient-to-br from-gray-800 to-gray-700 border border-[#4B9CD3] rounded-2xl overflow-hidden cursor-pointer shadow-lg shadow-[#4B9CD3]/20 hover:shadow-xl hover:shadow-[#4B9CD3]/30 transition duration-300 transform hover:scale-105"
+                      onClick={() => router.push(`/game/${game.id}`)}
+                    >
+                      <div className="relative h-24">
+                        <img 
+                          src={game.image} 
+                          alt={game.title}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute top-2 right-2 bg-gradient-to-r from-[#4B9CD3] to-[#7BB3E6] text-black px-2 py-1 rounded-full text-xs font-bold shadow-lg">
+                          ${game.buyIn}
+                        </div>
+                      </div>
+                      
+                      <div className="p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="text-lg font-bold text-[#4B9CD3]">{game.title}</h3>
+                          <span className="text-[#10B981] text-sm font-bold">
+                            {game.currentPlayers}/{game.maxPlayers}
+                          </span>
+                        </div>
+                        
+                        <p className="text-[#A0A0A0] text-sm mb-3">Hosted by {game.host}</p>
+                        
+                        <div className="space-y-2">
+                          <div className="flex items-center text-sm">
+                            <MapPin size={14} className="mr-2 text-[#4B9CD3]" />
+                            <span className="text-[#A0A0A0]">{game.location.city}, {game.location.state}</span>
+                          </div>
+                          
+                          <div className="flex items-center text-sm">
+                            <Calendar size={14} className="mr-2 text-[#4B9CD3]" />
+                            <span className="text-[#A0A0A0]">
+                              {new Date(game.date).toLocaleDateString('en-US', {
+                                weekday: 'short',
+                                month: 'short',
+                                day: 'numeric'
+                              })} at {game.time}
+                            </span>
+                          </div>
+                          
+                          <div className="flex items-center text-sm">
+                            <Users size={14} className="mr-2 text-[#4B9CD3]" />
+                            <span className="text-[#A0A0A0]">{game.gameType} • {game.skillLevel}</span>
+                          </div>
+                        </div>
+                        
+                        <button className="w-full bg-gradient-to-r from-[#4B9CD3] to-[#7BB3E6] text-black font-bold py-2 rounded-2xl mt-3 hover:from-[#3A8BC2] hover:to-[#6AA2D5] transition duration-300 shadow-lg shadow-[#4B9CD3]/30 hover:shadow-xl hover:shadow-[#4B9CD3]/40 transform hover:scale-105">
+                          Join Game
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-[#A0A0A0] text-lg">No games found matching your criteria</p>
+                    <button
+                      onClick={clearFilters}
+                      className="mt-4 bg-gradient-to-r from-[#4B9CD3] to-[#7BB3E6] text-black font-bold py-2 px-4 rounded-2xl hover:from-[#3A8BC2] hover:to-[#6AA2D5] transition duration-300"
+                    >
+                      Clear Filters
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Map View */
+              <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-[#4B9CD3] rounded-2xl p-6 text-center shadow-lg shadow-[#4B9CD3]/20">
+                <Map size={48} className="mx-auto mb-4 text-[#4B9CD3]" />
+                <h3 className="text-lg font-bold text-[#4B9CD3] mb-2">Map View</h3>
+                <p className="text-[#A0A0A0] text-sm">
+                  Interactive map showing game locations will be displayed here.
+                </p>
+                <p className="text-[#A0A0A0] text-xs mt-2">
+                  Click on markers to see game details and join directly from the map.
+                </p>
+              </div>
+            )}
+            
+            {/* Load More */}
+            {filteredGames.length > 0 && (
+              <button className="w-full bg-gradient-to-r from-gray-800 to-gray-700 border border-[#4B9CD3] p-3 rounded-2xl font-bold mt-6 text-[#A0A0A0] hover:text-[#4B9CD3] transition duration-300 shadow-lg shadow-[#4B9CD3]/20 hover:shadow-xl hover:shadow-[#4B9CD3]/30">
+                Load More Games
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>

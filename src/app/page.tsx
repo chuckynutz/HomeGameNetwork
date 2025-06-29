@@ -8,10 +8,6 @@ import { useState } from 'react';
 // FAQ Data
 const faqData = [
   {
-    question:"whats for lunch",
-    answer:"nothing"
-  },
-  {
     question: "What is The Home Game Network?",
     answer: "The Home Game Network is a platform that connects poker enthusiasts, making it easy to find and host home poker games in your local area. We provide a safe, secure environment for players to discover games, track their performance, and build a community of poker lovers."
   },
