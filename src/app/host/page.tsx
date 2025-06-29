@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Calendar, Clock, MapPin, Users, DollarSign, Wifi, Coffee, Car, Cigarette, ParkingCircle, Utensils, Wine, Music, Tv } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, MapPin, Users, DollarSign, Wifi, Coffee, Car, Cigarette, ParkingCircle, Utensils, Wine, Music, Tv, Upload, X, Image } from 'lucide-react';
 
 interface Amenity {
   id: string;
@@ -35,12 +35,15 @@ export default function HostPage() {
     description: ''
   });
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
+  const [uploadedImages, setUploadedImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Here you would typically send the data to your backend
     console.log('Creating game:', formData);
     console.log('Selected amenities:', selectedAmenities);
+    console.log('Uploaded images:', uploadedImages);
     router.push('/games');
   };
 
@@ -57,6 +60,34 @@ export default function HostPage() {
         ? prev.filter(id => id !== amenityId)
         : [...prev, amenityId]
     );
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const validFiles = files.filter(file => 
+      file.type.startsWith('image/') && file.size <= 5 * 1024 * 1024 // 5MB limit
+    );
+
+    if (uploadedImages.length + validFiles.length > 5) {
+      alert('Maximum 5 images allowed');
+      return;
+    }
+
+    setUploadedImages(prev => [...prev, ...validFiles]);
+
+    // Create previews
+    validFiles.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreviews(prev => [...prev, e.target?.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeImage = (index: number) => {
+    setUploadedImages(prev => prev.filter((_, i) => i !== index));
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -190,6 +221,57 @@ export default function HostPage() {
                 className="w-full bg-gradient-to-r from-gray-800 to-gray-700 border border-[#4B9CD3] rounded-2xl pl-10 pr-4 py-3 text-white placeholder-[#A0A0A0] shadow-lg shadow-[#4B9CD3]/20 focus:shadow-xl focus:shadow-[#4B9CD3]/30 transition duration-300"
                 required
               />
+            </div>
+          </div>
+
+          {/* Image Upload */}
+          <div>
+            <label className="block text-sm font-medium mb-2 text-[#4B9CD3]">Game Space Images</label>
+            <div className="space-y-4">
+              {/* Upload Button */}
+              <div className="flex items-center space-x-4">
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  id="image-upload"
+                />
+                <label 
+                  htmlFor="image-upload" 
+                  className="flex items-center justify-center gap-2 w-full h-24 bg-gradient-to-r from-gray-800 to-gray-700 border-2 border-dashed border-[#4B9CD3] rounded-2xl text-[#A0A0A0] hover:text-white hover:border-[#7BB3E6] transition-all duration-300 cursor-pointer shadow-lg shadow-[#4B9CD3]/20 hover:shadow-xl hover:shadow-[#4B9CD3]/30"
+                >
+                  <Upload size={24} />
+                  <span className="font-medium">Upload Images of Your Space</span>
+                </label>
+              </div>
+              
+              {/* Image Previews */}
+              {imagePreviews.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {imagePreviews.map((preview, index) => (
+                    <div key={index} className="relative group">
+                      <img 
+                        src={preview} 
+                        alt={`Game space ${index + 1}`} 
+                        className="w-full h-24 object-cover rounded-xl border border-[#4B9CD3] shadow-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition duration-300 opacity-0 group-hover:opacity-100"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              <p className="text-xs text-[#A0A0A0]">
+                Upload up to 5 images of your playing space (max 5MB each). Show players what to expect!
+              </p>
             </div>
           </div>
 
