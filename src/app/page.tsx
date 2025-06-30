@@ -257,7 +257,7 @@ export default function HomePage() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-20 px-4 relative z-10 overflow-hidden">
+      <section id="reviews" className="py-20 px-4 relative z-10 overflow-hidden">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-4xl font-bold text-center mb-16 bg-gradient-to-r from-[#4B9CD3] to-[#7BB3E6] bg-clip-text text-transparent">What Our Community Says</h2>
           
@@ -302,7 +302,7 @@ export default function HomePage() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 px-4 relative z-10">
+      <section id="faq" className="py-20 px-4 relative z-10">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-4xl font-bold text-center mb-16 bg-gradient-to-r from-[#4B9CD3] to-[#7BB3E6] bg-clip-text text-transparent">Frequently Asked Questions</h2>
           

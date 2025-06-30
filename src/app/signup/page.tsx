@@ -3,9 +3,12 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, User, Mail, Lock, Calendar } from 'lucide-react';
+import { useAuthStore } from '../../hooks/use-auth-store';
 
 export default function SignupPage() {
   const router = useRouter();
+  const setAuthenticated = useAuthStore((state) => state.setAuthenticated);
+  const setUser = useAuthStore((state) => state.setUser);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -14,12 +17,61 @@ export default function SignupPage() {
     confirmPassword: '',
     dateOfBirth: ''
   });
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically send the data to your backend
-    console.log('Signing up:', formData);
-    router.push('/');
+    setError(null);
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+    setIsLoading(true);
+    try {
+      // Register user
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          displayName: `${formData.firstName} ${formData.lastName}`.trim(),
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        setError(data.error || 'Registration failed');
+        setIsLoading(false);
+        return;
+      }
+      // Log in user
+      const loginRes = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+      const loginData = await loginRes.json();
+      if (loginRes.ok && loginData.success) {
+        setAuthenticated(true);
+        setUser({
+          id: loginData.user.localId || loginData.user.uid || '',
+          name: loginData.user.displayName || '',
+          email: loginData.user.email,
+          avatar: ''
+        });
+        router.push('/');
+      } else {
+        setError(loginData.error || 'Login after registration failed');
+      }
+    } catch (err) {
+      setError('An error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,6 +103,12 @@ export default function SignupPage() {
           <p className="text-center text-[#A0A0A0] mb-8">
             Create your account to start finding and hosting games
           </p>
+
+          {error && (
+            <div className="bg-red-500/20 border border-red-500 rounded-2xl p-4 text-red-400 mb-4">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Name Fields */}
@@ -171,8 +229,9 @@ export default function SignupPage() {
             <button
               type="submit"
               className="w-full bg-gradient-to-r from-[#4B9CD3] to-[#7BB3E6] text-black font-bold py-3 rounded-2xl text-lg hover:from-[#3A8BC2] hover:to-[#6AA2D5] transition duration-300 shadow-lg shadow-[#4B9CD3]/30 hover:shadow-xl hover:shadow-[#4B9CD3]/40 transform hover:scale-105"
+              disabled={isLoading}
             >
-              Create Account
+              {isLoading ? 'Creating Account...' : 'Create Account'}
             </button>
           </form>
 

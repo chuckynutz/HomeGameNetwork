@@ -3,19 +3,47 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Mail, Lock } from 'lucide-react';
+import { useAuthStore } from '../../hooks/use-auth-store';
 
 export default function LoginPage() {
   const router = useRouter();
+  const setAuthenticated = useAuthStore((state) => state.setAuthenticated);
+  const setUser = useAuthStore((state) => state.setUser);
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically send the data to your backend
-    console.log('Logging in:', formData);
-    router.push('/');
+    setError(null);
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setAuthenticated(true);
+        setUser({
+          id: data.user.localId || data.user.uid || '',
+          name: data.user.displayName || '',
+          email: data.user.email,
+          avatar: ''
+        });
+        router.push('/');
+      } else {
+        setError(data.error || 'Login failed');
+      }
+    } catch (err) {
+      setError('An error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -47,6 +75,12 @@ export default function LoginPage() {
           <p className="text-center text-[#A0A0A0] mb-8">
             Sign in to your account to continue
           </p>
+
+          {error && (
+            <div className="bg-red-500/20 border border-red-500 rounded-2xl p-4 text-red-400 mb-4">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email */}
@@ -94,8 +128,9 @@ export default function LoginPage() {
             <button
               type="submit"
               className="w-full bg-gradient-to-r from-[#4B9CD3] to-[#7BB3E6] text-black font-bold py-3 rounded-2xl text-lg hover:from-[#3A8BC2] hover:to-[#6AA2D5] transition duration-300 shadow-lg shadow-[#4B9CD3]/30 hover:shadow-xl hover:shadow-[#4B9CD3]/40 transform hover:scale-105"
+              disabled={isLoading}
             >
-              Sign In
+              {isLoading ? 'Signing In...' : 'Sign In'}
             </button>
           </form>
 
